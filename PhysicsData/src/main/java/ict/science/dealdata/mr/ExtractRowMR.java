@@ -1,8 +1,10 @@
 package ict.science.dealdata.mr;
 
 import java.io.IOException;
+import java.util.StringTokenizer;
 
 import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapreduce.Job;
@@ -13,6 +15,8 @@ import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
 import org.apache.hadoop.util.GenericOptionsParser;
 
 public class ExtractRowMR {
+
+	// private static final Log LOG = LogFactory.getLog(ExtractRowMR.class);
 
 	public static class ExtractMap extends Mapper<Object, Text, Text, Text> {
 		private static String SEPARATOR = ",";
@@ -29,31 +33,60 @@ public class ExtractRowMR {
 		private Text resultKey = new Text();
 		private Text resultValue = new Text();
 
+		// use StringTokenizer
+		public void map(Object key, Text value, Context context)
+				throws IOException, InterruptedException {
+
+			String item[] = new String[6];
+			String tmpKey = null;
+			int i = 0;
+			StringTokenizer itr = new StringTokenizer(value.toString(),
+					SEPARATOR);
+			while (itr.hasMoreTokens()) {
+				item[i] = itr.nextToken();
+				i++;
+			}
+			for (i = 3; i < item.length; i++) {
+				tmpKey = SOFTNO + "#" + SOFTNOVALUE + "#" + "runNo" + "#"
+						+ item[1] + "#" + title[i] + "#" + item[i];
+				resultKey.set(tmpKey);
+				resultValue.set(item[2]);
+				context.write(resultKey, resultValue);
+			}
+
+		}
+
+		/**
+		 *  use java string split
 		public void map(Object key, Text value, Context context)
 				throws IOException, InterruptedException {
 			String item[] = null;
 			String tmpKey = null;
+
 			item = value.toString().split(SEPARATOR);
 			for (int i = 3; i < item.length; i++) {
 				tmpKey = SOFTNO + "#" + SOFTNOVALUE + "#" + "runNo" + "#"
 						+ item[1] + "#" + title[i] + "#" + item[i];
 				resultKey.set(tmpKey);
 				resultValue.set(item[2]);
-				context.write(new Text(tmpKey), new Text(item[2]));
+				context.write(resultKey, resultValue);
+				LOG.info("**************2" + System.currentTimeMillis());
 			}
 		}
+		**/
+
 	}
 
 	public static class ExtractReduce extends Reducer<Text, Text, Text, Text> {
 		public void reduce(Text key, Iterable<Text> values, Context context)
 				throws IOException, InterruptedException {
 			Text resultValue = new Text();
-			String tempValue="#";
+			StringBuilder tempValue = new StringBuilder();
 			for (Text value : values) {
-				tempValue += value.toString()+"#";
+				tempValue.append(value.toString()).append("#");
 			}
-			tempValue=tempValue.substring(1, tempValue.length()-1);
-			resultValue.set(tempValue);
+			resultValue.set(tempValue.subSequence(1, tempValue.length() - 1)
+					.toString());
 			context.write(key, resultValue);
 		}
 	}
@@ -76,8 +109,17 @@ public class ExtractRowMR {
 		for (int i = 0; i < otherArgs.length - 1; ++i) {
 			FileInputFormat.addInputPath(job, new Path(otherArgs[i]));
 		}
-		FileOutputFormat.setOutputPath(job, new Path(
-				otherArgs[otherArgs.length - 1]));
+
+		// delete the output path if exists
+		Path outputPath = new Path(otherArgs[otherArgs.length - 1]);
+		FileSystem hdfs = FileSystem.newInstance(conf);
+		if (null != hdfs) {
+			if (hdfs.exists(outputPath)) {
+				hdfs.delete(outputPath, true);
+			}
+		}
+		FileOutputFormat.setOutputPath(job, outputPath);
+
 		System.exit(job.waitForCompletion(true) ? 0 : 1);
 	}
 }
