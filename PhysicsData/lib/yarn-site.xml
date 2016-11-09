@@ -66,14 +66,14 @@
 
         <property>
                 <name>yarn.nodemanager.resource.memory-mb</name>
-                <value>102400</value>
+                <value>40960</value>
                 <description>the amount of memory on the NodeManager in MB</description>
         </property>
 
 
         <property>
                 <name>yarn.scheduler.maximum-allocation-mb</name>
-                <value>49152</value>
+                <value>10240</value>
         </property>
    
 </configuration>
