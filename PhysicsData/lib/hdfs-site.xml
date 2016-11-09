@@ -38,10 +38,15 @@
                 <description>The address and the base port where the dfs namenode web ui will listen on.If the port is 0 then the server will start on a fre
 e port.</description>
         </property>
+
         <property>
                 <name>dfs.namenode.secondary.http-address</name>
                 <value>data17:50090</value>
         </property>
 
+        <property>
+                <name>dfs.blocksize</name>
+                <value>32M</value>
+        </property>
 
 </configuration>
