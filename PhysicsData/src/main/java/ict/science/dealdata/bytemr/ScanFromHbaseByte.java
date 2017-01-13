@@ -1,4 +1,4 @@
-package ict.science.hbase;
+package ict.science.dealdata.bytemr;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
@@ -22,10 +22,10 @@ import org.apache.hadoop.hbase.client.Scan;
 import org.apache.hadoop.hbase.client.Table;
 import org.apache.hadoop.hbase.util.Bytes;
 
-public class ScanFromHbase {
+public class ScanFromHbaseByte {
 
 	private static Configuration conf;
-	private static String tableNameStr = "tag";
+	private static String tableNameStr = "byte_test_table";
 
 	private static TableName tableName;
 	private static Table table;
@@ -97,31 +97,17 @@ public class ScanFromHbase {
 		fw = new FileWriter(wfile);
 		bw = new BufferedWriter(fw);
 		
-		
-		
-//		String tempSql = "select eventId from tag2  where runNo= '-8126' and totalTrks ='4'";
-////		select eventId from tag2  where runNo= '-8126' and totalTrks ='48'
-//		
-//			runNoValue = tempSql.substring(40, 45);
-//			if(tempSql.contains("totalCharged")){
-//				attr = "totalCharged";
-//				attrValue = tempSql.substring(66, tempSql.length()-1);
-//			}else if(tempSql.contains("totalNeutral")){
-//				attr = "totalNeutral";
-//				attrValue = tempSql.substring(66, tempSql.length()-1);
-//			}else{
-//				attr = "totalTrks";
-//				attrValue = tempSql.substring(63, tempSql.length()-1);
-//			}
-//			
-//			String startRowStr = "softNo#0#runNo#" + runNoValue + "#" + attr + "#"+ attrValue;
-//			String endRowStr = "softNo#0#runNo#" + runNoValue + "#" + attr + "#"+ attrValue + "#";
-//			
-//			System.out.println(startRowStr);
-//			System.out.println(endRowStr);
 
 		String tempSql;
+		
+		int numCount = 0;
+		
 		while ((tempSql = br.readLine()) != null) {
+			numCount++;
+//			if(numCount>100){
+//				break;
+//			}
+			
 			int count = 0;
 			long startTime = 0;
 			long endTime = 0;
@@ -138,17 +124,33 @@ public class ScanFromHbase {
 				attrValue = tempSql.substring(63, tempSql.length()-1);
 			}
 			
-			String startRowStr = "softNo#0#runNo#" + runNoValue + "#" + attr + "#"+ attrValue;
-			String endRowStr = "softNo#0#runNo#" + runNoValue + "#" + attr + "#"+ attrValue + "#";
+			String startRowStr = "softNo#0#runNo#" + runNoValue + "#" + attr + "#";
+			String endRowStr = "softNo#0#runNo#" + runNoValue + "#" + attr + "#";
+			System.out.println("**************"+attrValue);
+			byte[] start_byte_row_pre = Bytes.toBytes(startRowStr);
+			byte[] start_byte_row_suf = Bytes.toBytes(Integer.parseInt(attrValue));
 			
-//			System.out.println(startRowStr);
-//			System.out.println(endRowStr);
+			byte[] end_byte_row_pre = Bytes.toBytes(endRowStr);
+			byte[] end_byte_row_suf = Bytes.toBytes(Integer.parseInt(attrValue)+10);
+			
+			byte[] start_key = new byte[start_byte_row_pre.length+start_byte_row_suf.length];
+			System.arraycopy(start_byte_row_pre, 0, start_key, 0, start_byte_row_pre.length);
+			System.arraycopy(start_byte_row_suf, 0, start_key, start_byte_row_pre.length, start_byte_row_suf.length);
+			
+			byte[] end_key = new byte[end_byte_row_pre.length+end_byte_row_suf.length];
+			System.arraycopy(end_byte_row_pre, 0, end_key, 0, end_byte_row_pre.length);
+			System.arraycopy(end_byte_row_suf, 0, end_key, end_byte_row_pre.length, end_byte_row_suf.length);
+			
+			
+			
+			System.out.println(startRowStr);
+			System.out.println(endRowStr);
 			
 			
 			
 			
-			scan.setStartRow(Bytes.toBytes(startRowStr));
-			scan.setStopRow(Bytes.toBytes(endRowStr));
+			scan.setStartRow(start_key);
+			scan.setStopRow(end_key);
 
 			ResultScanner scanner = table.getScanner(scan);
 			Result res ;
@@ -184,13 +186,13 @@ public class ScanFromHbase {
 	static void println(Result result) {
 		List<Cell> cellList = result.listCells();
 		for (Cell cell : cellList) {
-//			 System.out
-//			 .println(Bytes.toString(CellUtil.cloneRow(cell)) + "\t"
-//			 + Bytes.toString(CellUtil.cloneFamily(cell)) + "\t"
-//			 + Bytes.toString(CellUtil.cloneQualifier(cell)) + "\t"
-//			 + Bytes.toString(CellUtil.cloneValue(cell)));
-			System.out
-			.println("*********"+Bytes.toString(CellUtil.cloneRow(cell)) );
+			 System.out
+			 .println(CellUtil.cloneRow(cell) + "\t"
+			 + Bytes.toString(CellUtil.cloneFamily(cell)) + "\t"
+			 + Bytes.toString(CellUtil.cloneQualifier(cell)) + "\t"
+			 + Bytes.toString(CellUtil.cloneValue(cell)));
+//			System.out
+//			.println("*********"+Bytes.toString(CellUtil.cloneRow(cell)) );
 		}
 
 	}

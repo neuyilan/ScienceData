@@ -12,7 +12,7 @@ public class CreatePhoenixTable {
 	public static void main(String[] args) throws SQLException{
 		Statement stmt = null;
 		ResultSet rset = null;
-		Connection con = DriverManager.getConnection("jdbc:phoenix:172.22.1.56:2181");
+		Connection con = DriverManager.getConnection("jdbc:phoenix:data19:2181");
 		stmt=con.createStatement();
 		stmt.executeUpdate("create table test_2 (mykey integer not null primary key,mycolumn varchar)");
 		con.commit();

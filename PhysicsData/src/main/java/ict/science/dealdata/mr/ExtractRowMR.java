@@ -74,7 +74,6 @@ public class ExtractRowMR {
 			}
 		}
 		**/
-
 	}
 
 	public static class ExtractReduce extends Reducer<Text, Text, Text, Text> {
